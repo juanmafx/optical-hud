@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="Convert to Morse" />
+        android:text="Convert and Transmit" />
 
     <TextView
         android:id="@+id/outputMorse"
@@ -27,5 +27,24 @@
         android:layout_marginTop="16dp"
         android:text="Morse output will appear here"
         android:textSize="18sp" />
+
+    <ProgressBar
+        android:id="@+id/transmissionProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:max="100"
+        android:progress="0" />
+
+    <TextView
+        android:id="@+id/currentStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text=""
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

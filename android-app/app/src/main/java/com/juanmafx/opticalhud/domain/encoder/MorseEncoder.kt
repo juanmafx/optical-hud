@@ -2,7 +2,7 @@ package com.juanmafx.opticalhud.domain.encoder
 
 class MorseEncoder {
 
-    private val map = mapOf(
+    private val morseMap = mapOf(
         'A' to ".-",
         'B' to "-...",
         'C' to "-.-.",
@@ -38,12 +38,22 @@ class MorseEncoder {
         '6' to "-....",
         '7' to "--...",
         '8' to "---..",
-        '9' to "----."
+        '9' to "----.",
+        ' ' to "/"
     )
 
-    fun encode(text: String): List<String> {
-        val tokens = mutableListOf<String>()
+    fun encode(text: String): String {
+        return text
+            .uppercase()
+            .mapNotNull { morseMap[it] }
+            .joinToString(" ")
+    }
 
+    /**
+     * For internal transmission use, returning tokens compatible with [MorseTimingBuilder].
+     */
+    fun encodeToTokens(text: String): List<String> {
+        val tokens = mutableListOf<String>()
         for (char in text.uppercase()) {
             if (char == ' ') {
                 if (tokens.isNotEmpty() && tokens.last() != " ") {
@@ -51,15 +61,9 @@ class MorseEncoder {
                 }
                 continue
             }
-
-            val morse = map[char] ?: continue
+            val morse = morseMap[char] ?: continue
             tokens.add(morse)
         }
-
-        if (tokens.lastOrNull() == " ") {
-            tokens.removeAt(tokens.lastIndex)
-        }
-
         return tokens
     }
 }

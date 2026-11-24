@@ -1,20 +1,15 @@
-# Optical HUD 2.0.0 Release Notes
+# Optical HUD 2.0.1 Release Notes
 
-Status: prepared, not tagged or released.
+Version 2.0.1 is a documentation-only release. It contains no code behaviour change from 2.0.0. The Android `versionName` is 2.0.1 and the `versionCode` is 3.
 
-## Highlights
+## Changes
 
-- **Correct signaling.** Timing now follows the ITU 1:3:7 standard, and on-screen highlighting stays aligned across words.
-- **Clean architecture.** Signal logic lives in a pure Kotlin module that is testable without Android.
-- **Measurable link quality.** A seeded simulator reports decode success with confidence intervals.
-- **Smaller attack surface.** The app requests no camera or network permission and disables backups.
-- **Enforced flash limit.** A stalled UI thread can no longer release queued flashes in a burst.
+- The changelog and release notes no longer describe 2.0.0 as unreleased.
+- The security audit marks the earlier wrapper JAR in Git history as resolved. On 2026-11-24 the public history was rewritten to keep only the 2026 modernization commits.
 
-## Upgrade Notes
+## Upgrading
 
-- Requires JDK 17 to build. Gradle is 9.9.2 and AGP is 9.5.2.
-- Word gaps are longer than in 1.0, so a 2.0.0 stream is not timed identically to a 1.0 stream.
-- Scheduling latency now accumulates into total transmission time in exchange for the flash limit.
+No action is needed when upgrading from 2.0.0. For the changes introduced in 2.0.0, see [CHANGELOG.md](CHANGELOG.md).
 
 ## Known Limitations
 

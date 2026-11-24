@@ -2,7 +2,14 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [2.0.0] - Unreleased
+## [2.0.1] - 2026-11-24
+
+### Documentation
+
+- Corrected the release notes and security audit to reflect the published 2.0.0 release and the rewritten repository history.
+- No code behaviour change.
+
+## [2.0.0] - 2026-11-24
 
 ### Breaking
 

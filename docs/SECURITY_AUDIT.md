@@ -36,6 +36,7 @@
 | Low | Invalid experiment options crashed with a stack trace | Validated, with a usage error |
 | Info | Release shrinking was disabled | Enabled |
 | Info | IDE configuration was tracked | Untracked |
+| Info | An earlier wrapper JAR remained in Git history. Its checksum matches official Gradle 6.6 through 7.0.2 releases, so it was not a compromise indicator | Resolved by the 2026-11-24 history rewrite, which kept only the 2026 modernization commits |
 
 ## Open
 
@@ -44,5 +45,4 @@
 | Accepted by design | Optical messages are plaintext and observable in line of sight |
 | Low | Release signing is not configured |
 | Low | `androidx.core` is one minor line behind because 1.19 requires compileSdk 37 |
-| Info | Earlier wrapper JAR remains in Git history. Its checksum matches official Gradle 6.6 through 7.0.2 releases, so it is not a compromise indicator |
 | Info | Behavior on physical devices and emulators was not verified for this release |

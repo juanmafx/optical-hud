@@ -1,0 +1,23 @@
+# Android and Gradle
+.gradle/
+.kotlin/
+build/
+local.properties
+*.iml
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE
+.idea/
+
+# Kotlin
+out/
+
+# Python
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db

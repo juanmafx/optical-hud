@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">OpticalHUD</string>
+    <string name="input_hint">Enter text</string>
+    <string name="action_transmit">Convert and Transmit</string>
+    <string name="output_placeholder">Morse output will appear here</string>
+    <string name="status_done">Done</string>
+    <string name="status_failed">Transmission failed</string>
+    <string name="status_word_gap">Space</string>
+    <string name="status_symbol">%1$s (%2$s)</string>
+    <plurals name="status_dropped_characters">
+        <item quantity="one">%d unsupported character skipped</item>
+        <item quantity="other">%d unsupported characters skipped</item>
+    </plurals>
+    <string name="toast_transmission_complete">Transmission complete</string>
+    <string name="error_empty_message">Please enter at least one letter or digit</string>
+    <string name="error_message_too_long">Message is too long</string>
+    <string name="error_no_torch">No back camera with flashlight found</string>
+    <string name="error_torch_failed">The flashlight became unavailable</string>
+</resources>

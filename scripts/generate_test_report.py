@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Builds reports/tests/summary.md from JUnit XML produced by a real Gradle test run.
+import re
 import sys
 import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timezone
@@ -7,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "android-app/core/build/test-results/test"
+TEST_SOURCES = ROOT / "android-app/core/src/test"
 OUTPUT = ROOT / "reports/tests/summary.md"
 
 
@@ -18,6 +20,12 @@ def main():
     if not suites:
         sys.exit("No JUnit XML found. Run the core test task first.")
     totals = {key: sum(int(suite.get(key)) for suite in suites) for key in ("tests", "failures", "errors", "skipped")}
+    declared = sum(
+        len(re.findall(r"^\s*@Test\b", path.read_text(encoding="utf-8"), re.MULTILINE))
+        for path in TEST_SOURCES.rglob("*.kt")
+    )
+    if declared != totals["tests"]:
+        sys.exit(f"{declared} tests declared but {totals['tests']} executed")
     passed = totals["tests"] - totals["failures"] - totals["errors"] - totals["skipped"]
     lines = [
         "# Test Report",

@@ -41,14 +41,14 @@ class PulseDecoderTest {
     }
 
     @Test
-    fun `ideal channel round trips every canonical text`() = runBlocking {
+    fun `ideal channel round trips every canonical text`(): Unit = runBlocking {
         checkAll(propertyConfig(), canonicalText) { text ->
             assertEquals(text, PulseDecoder(200.0).decode(pulses(text)))
         }
     }
 
     @Test
-    fun `blind estimation adapts to a sender at a different speed`() = runBlocking {
+    fun `blind estimation adapts to a sender at a different speed`(): Unit = runBlocking {
         checkAll(propertyConfig(200), canonicalText, Arb.long(170L..400L)) { text, unitMs ->
             val hasBothSymbols = encoder.encode(text).morse.let { '.' in it && '-' in it }
             if (hasBothSymbols) {

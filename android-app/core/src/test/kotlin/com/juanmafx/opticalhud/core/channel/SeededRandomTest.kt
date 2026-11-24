@@ -23,6 +23,13 @@ class SeededRandomTest {
     }
 
     @Test
+    fun `gaussian stream matches strictmath reference bits`() {
+        val random = SeededRandom(1234567L)
+        val expected = listOf("3fdb6c588418d885", "3f7f7b09fc4e0722", "bffdbd2bf5508ef1", "bfcb1153ec964547")
+        assertEquals(expected, List(4) { random.nextGaussian().toRawBits().toULong().toString(16) })
+    }
+
+    @Test
     fun `same seed reproduces the same stream`() {
         val first = SeededRandom(99L)
         val second = SeededRandom(99L)

@@ -2,7 +2,7 @@
 
 An off-grid optical communication prototype for Android. It turns a phone flashlight into a Morse code transmitter and ships a seeded simulator that measures how well such a link survives timing noise.
 
-> **Photosensitivity warning:** this app flashes a bright light. Do not use it around people with photosensitive epilepsy, and do not aim it at anyone's eyes. The planner rejects timing that would exceed three flashes per second.
+> **Photosensitivity warning:** this app flashes a bright light. Do not use it around people with photosensitive epilepsy, and do not aim it at anyone's eyes. The timing model rejects a Morse unit below 170 ms, and each step starts only after the previous one has run for its full duration, so the app never commands more than three flashes in one second. Torch hardware latency is not measured, and this limit is not a medical safety guarantee.
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Optical HUD explores communication through visible light when radio, Wi-Fi, and 
 
 ## Why This Project Exists
 
-A phone flashlight is a crude transmitter: it has only two states, imprecise switching, and a receiver limited by camera frame rate. That makes it a compact way to study line coding, timing recovery, and error measurement on real hardware constraints. The long-term direction is camera-based reception, a custom binary protocol, and HUD-style aiming assistance. **None of those three exist yet.**
+A phone flashlight is a crude transmitter: it has only two states, imprecise switching, and a receiver limited by camera frame rate. That makes it a compact way to study line coding, timing recovery, and error measurement. Today the transmitter drives real torch hardware, while reception and error measurement run in simulation. The long-term direction is camera-based reception, a custom binary protocol, and HUD-style aiming assistance. **None of those three exist yet.**
 
 ## What It Does
 
@@ -42,7 +42,7 @@ The `core` module has no Android dependency, so the compiler enforces the domain
 
 ## Quick Start
 
-Requirements: JDK 17 and Android SDK platform 36.
+Requirements: JDK 17 and Android SDK platform 36, with `ANDROID_HOME` set or `sdk.dir` in `android-app/local.properties`. The app targets Android 8.0 (API 26) and newer.
 
 ```bash
 git clone https://github.com/juanmafx/optical-hud.git
@@ -59,7 +59,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 3. Tap **Convert and Transmit**. The Morse output highlights the active symbol while the torch flashes.
 4. Leaving the app stops the transmission and turns the torch off.
 
-Letters and digits are transmitted. Any whitespace separates words. Other characters are skipped and the app reports how many.
+ASCII letters and digits are transmitted, case-insensitively. Any whitespace separates words. Other characters, including accented letters and punctuation, are skipped and the app reports how many.
 
 ### Running the Channel Experiment
 
@@ -91,12 +91,14 @@ These are **simulation results** from an independent Gaussian jitter model. They
 
 ## Database (Optional)
 
-The app has no persistence and never stores messages. [db/schema.sql](db/schema.sql) is an **optional** SQLite schema for archiving experiment results.
+The app has no database and writes no message text to storage. [db/schema.sql](db/schema.sql) is an **optional** SQLite schema for archiving experiment results. It uses `STRICT` tables, so it requires SQLite 3.37 or newer.
 
 ```bash
 sqlite3 experiments.db < db/schema.sql
 python3 scripts/verify_schema.py
 ```
+
+The first command creates an empty database. The second is independent of that file: it applies the schema to an in-memory database, imports the committed CSV, and confirms that an invalid row is rejected. The repository does not include an import tool for a file database.
 
 ## Testing
 
@@ -107,12 +109,13 @@ cd ..
 python3 scripts/generate_test_report.py
 ```
 
-The suite combines example tests, seeded property-based tests (Kotest), and statistical tests (chi-squared, Kolmogorov-Smirnov, moment checks, and Wilson coverage against the exact binomial value). The latest real run is in [reports/tests/summary.md](reports/tests/summary.md). Android UI and torch hardware behavior are not covered by automated tests.
+The suite combines example tests, seeded property-based tests (Kotest), and statistical tests (chi-squared, Kolmogorov-Smirnov, moment checks, and Wilson coverage against the exact binomial value). The report generator fails if any declared test did not execute. The latest real run is in [reports/tests/summary.md](reports/tests/summary.md). Android UI and torch hardware behavior are not covered by automated tests, and this version has not been run on a device or emulator.
 
 ## Security Notes
 
-- No network permission, no accounts, no stored user data, and backups disabled.
-- Uses the torch API without requesting the `CAMERA` permission.
+- No network permission, no accounts, and backups disabled. The app writes no message text to storage.
+- The built manifest does not request `CAMERA`. Its only requested permission is the app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` that AndroidX adds.
+- The text field asks keyboards not to learn from input (`flagNoPersonalizedLearning`). Keyboards may ignore this request.
 - Optical transmission is plaintext and observable by anyone in line of sight. Do not send secrets.
 - Report vulnerabilities as described in [SECURITY.md](SECURITY.md). Audit details: [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 
@@ -122,4 +125,8 @@ Originally created in 2026 and modernized in 2026. See [CHANGELOG.md](CHANGELOG.
 
 ## License
 
-No license file is present, so all rights are reserved by the author by default.
+No license file is present, so all rights are reserved by the author by default. The Gradle Wrapper files (`gradlew`, `gradlew.bat`, and `gradle/wrapper/`) are unmodified Gradle project files under the Apache License 2.0.
+
+## Credits
+
+The implementation follows published work: SplitMix64 (Steele, Lea, and Flood, 2014), the Box-Muller transform (1958), the Wilson score interval (1927), Levenshtein distance (1966), the Morse timing of ITU-R M.1677-1, and the three-flash threshold of WCAG 2.3.1.

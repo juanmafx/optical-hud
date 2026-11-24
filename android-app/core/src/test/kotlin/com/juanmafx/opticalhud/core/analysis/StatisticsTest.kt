@@ -32,7 +32,7 @@ class StatisticsTest {
     }
 
     @Test
-    fun `wilson interval contains the observed proportion`() = runBlocking {
+    fun `wilson interval contains the observed proportion`(): Unit = runBlocking {
         checkAll(propertyConfig(), Arb.int(1..5000), Arb.int(0..5000)) { trials, raw ->
             val successes = raw % (trials + 1)
             val interval = Statistics.wilsonInterval(successes, trials)
@@ -83,7 +83,7 @@ class StatisticsTest {
     }
 
     @Test
-    fun `edit distance is a metric`() = runBlocking {
+    fun `edit distance is a metric`(): Unit = runBlocking {
         checkAll(propertyConfig(), canonicalWord, canonicalWord, canonicalWord) { a, b, c ->
             val ab = Statistics.editDistance(a, b)
             assertEquals(0, Statistics.editDistance(a, a))

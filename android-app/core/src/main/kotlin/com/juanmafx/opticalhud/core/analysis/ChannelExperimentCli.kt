@@ -10,7 +10,9 @@ object ChannelExperimentCli {
 
     fun parse(arguments: List<String>): ExperimentConfig {
         require(arguments.size % 2 == 0) { "Arguments must be --name value pairs" }
-        val options = arguments.chunked(2).associate { (name, value) -> name to value }
+        val pairs = arguments.chunked(2)
+        val options = pairs.associate { (name, value) -> name to value }
+        require(options.size == pairs.size) { "Options must not repeat" }
         val unknown = options.keys - setOf("--seed", "--trials", "--unit-ms", "--frame-interval-ms")
         require(unknown.isEmpty()) { "Unknown options: ${unknown.joinToString()}" }
         val defaults = ExperimentConfig()

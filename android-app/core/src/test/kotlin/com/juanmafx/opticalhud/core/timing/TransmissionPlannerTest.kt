@@ -45,7 +45,7 @@ class TransmissionPlannerTest {
     }
 
     @Test
-    fun `lit steps align with their morse symbol after multiple words`() = runBlocking {
+    fun `lit steps align with their morse symbol after multiple words`(): Unit = runBlocking {
         checkAll(propertyConfig(), canonicalText) { text ->
             val message = encoder.encode(text)
             val litSteps = planner.plan(message).filter { it.enabled }
@@ -55,7 +55,7 @@ class TransmissionPlannerTest {
     }
 
     @Test
-    fun `every range stays inside the rendered morse for arbitrary input`() = runBlocking {
+    fun `every range stays inside the rendered morse for arbitrary input`(): Unit = runBlocking {
         checkAll(propertyConfig(), arbitraryText) { text ->
             val message = encoder.encode(text)
             planner.plan(message).forEach {
@@ -65,7 +65,7 @@ class TransmissionPlannerTest {
     }
 
     @Test
-    fun `steps alternate between lit and dark and end lit`() = runBlocking {
+    fun `steps alternate between lit and dark and end lit`(): Unit = runBlocking {
         checkAll(propertyConfig(), canonicalText) { text ->
             val steps = planner.plan(encoder.encode(text))
             assertTrue(steps.first().enabled && steps.last().enabled)
@@ -74,7 +74,7 @@ class TransmissionPlannerTest {
     }
 
     @Test
-    fun `no one second window holds more than three flashes at the fastest unit`() = runBlocking {
+    fun `no one second window holds more than three flashes at the fastest unit`(): Unit = runBlocking {
         val fastest = TransmissionPlanner(MorseTiming(MorseTiming.MIN_UNIT_MS))
         checkAll(propertyConfig(200), canonicalText) { text ->
             var clock = 0L

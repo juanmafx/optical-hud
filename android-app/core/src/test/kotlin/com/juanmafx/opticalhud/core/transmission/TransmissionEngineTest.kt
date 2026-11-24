@@ -3,6 +3,11 @@ package com.juanmafx.opticalhud.core.transmission
 import com.juanmafx.opticalhud.core.support.canonicalText
 import com.juanmafx.opticalhud.core.support.propertyConfig
 import com.juanmafx.opticalhud.core.timing.FlashStep
+import com.juanmafx.opticalhud.core.timing.MorseTiming
+import com.juanmafx.opticalhud.core.timing.TransmissionPlanner
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.long
 import io.kotest.property.checkAll
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,6 +44,32 @@ class TransmissionEngineTest {
         }
 
         val pending: Int get() = queue.size
+    }
+
+    private class ClockedScheduler : StepScheduler {
+        private class Task(val dueMs: Long, val order: Int, val action: () -> Unit)
+
+        private val tasks = mutableListOf<Task>()
+        private var sequence = 0
+        var nowMs = 0L
+            private set
+
+        override fun schedule(delayMs: Long, action: () -> Unit) {
+            tasks += Task(nowMs + delayMs, sequence++, action)
+        }
+
+        override fun cancelAll() = tasks.clear()
+
+        fun runUntilIdle(stallAtTask: Int, stallMs: Long) {
+            var executed = 0
+            while (tasks.isNotEmpty()) {
+                val next = tasks.minWith(compareBy<Task> { it.dueMs }.thenBy { it.order })
+                tasks.remove(next)
+                nowMs = maxOf(nowMs, next.dueMs)
+                if (executed++ == stallAtTask) nowMs += stallMs
+                next.action()
+            }
+        }
     }
 
     private class FakeTorch(
@@ -152,7 +183,7 @@ class TransmissionEngineTest {
     }
 
     @Test
-    fun `progress is monotonic and the torch always ends off`() = runBlocking {
+    fun `progress is monotonic and the torch always ends off`(): Unit = runBlocking {
         checkAll(propertyConfig(200), canonicalText) { text ->
             val torch = FakeTorch()
             val scheduler = VirtualScheduler()
@@ -165,5 +196,58 @@ class TransmissionEngineTest {
             assertEquals(100, progress.last())
             assertFalse(torch.calls.last())
         }
+    }
+
+    @Test
+    fun `a stalled scheduler never compresses flash onsets`(): Unit = runBlocking {
+        val minimumSpacingMs = 2 * MorseTiming.MIN_UNIT_MS
+        checkAll(propertyConfig(200), canonicalText, Arb.int(0..60), Arb.long(1L..5000L)) { text, stallAtTask, stallMs ->
+            val scheduler = ClockedScheduler()
+            val onsets = mutableListOf<Long>()
+            val torch = object : TorchController {
+                override val isAvailable = true
+
+                override fun setEnabled(enabled: Boolean): Boolean {
+                    if (enabled) onsets += scheduler.nowMs
+                    return true
+                }
+            }
+            val planner = TransmissionPlanner(MorseTiming(MorseTiming.MIN_UNIT_MS))
+            TransmissionEngine(torch, scheduler, planner = planner).transmit(text)
+            scheduler.runUntilIdle(stallAtTask, stallMs)
+
+            onsets.zipWithNext().forEach { (first, second) -> assertTrue(second - first >= minimumSpacingMs) }
+            onsets.forEach { start -> assertTrue(onsets.count { it in start until start + 1000 } <= 3) }
+        }
+    }
+
+    @Test
+    fun `a listener restarting from a step runs only the new transmission`() {
+        val torch = FakeTorch()
+        val scheduler = VirtualScheduler()
+        val engine = TransmissionEngine(torch, scheduler)
+        var restarted = false
+        var completed = 0
+        engine.listener = object : TransmissionListener {
+            override fun onStep(step: FlashStep, progressPercent: Int) {
+                if (!restarted) {
+                    restarted = true
+                    engine.transmit("E")
+                }
+            }
+
+            override fun onCompleted() {
+                completed++
+            }
+
+            override fun onFailed() = Unit
+        }
+
+        engine.transmit("SOS")
+        scheduler.advanceUntilIdle()
+
+        assertEquals(1, completed)
+        assertEquals(0, scheduler.pending)
+        assertFalse(torch.calls.last())
     }
 }

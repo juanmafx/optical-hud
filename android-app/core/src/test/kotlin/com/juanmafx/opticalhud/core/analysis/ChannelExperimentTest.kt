@@ -43,6 +43,21 @@ class ChannelExperimentTest {
     }
 
     @Test
+    fun `cli rejects values the experiment cannot run`() {
+        listOf(
+            listOf("--unit-ms", "100"),
+            listOf("--frame-interval-ms", "NaN"),
+            listOf("--frame-interval-ms", "Infinity"),
+            listOf("--frame-interval-ms", "-1"),
+            listOf("--trials", "0"),
+            listOf("--seed", "abc"),
+            listOf("--seed", "1", "--seed", "2")
+        ).forEach { arguments ->
+            assertThrows(IllegalArgumentException::class.java, { ChannelExperimentCli.parse(arguments) }, arguments.toString())
+        }
+    }
+
+    @Test
     fun `csv has a header and one row per jitter level`() {
         val small = config.copy(trialsPerPoint = 5)
         val lines = ChannelExperimentCli.toCsv(small, ChannelExperiment(small).run()).trim().lines()

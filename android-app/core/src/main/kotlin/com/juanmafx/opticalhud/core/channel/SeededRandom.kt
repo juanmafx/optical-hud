@@ -1,10 +1,5 @@
 package com.juanmafx.opticalhud.core.channel
 
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.ln
-import kotlin.math.sqrt
-
 class SeededRandom(seed: Long) {
     private var state = seed
 
@@ -29,8 +24,8 @@ class SeededRandom(seed: Long) {
     }
 
     fun nextGaussian(): Double {
-        val radius = sqrt(-2.0 * ln(1.0 - nextDouble()))
-        return radius * cos(2.0 * PI * nextDouble())
+        val radius = StrictMath.sqrt(-2.0 * StrictMath.log(1.0 - nextDouble()))
+        return radius * StrictMath.cos(2.0 * StrictMath.PI * nextDouble())
     }
 
     private companion object {

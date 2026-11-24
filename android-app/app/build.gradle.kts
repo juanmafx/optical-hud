@@ -47,4 +47,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    constraints {
+        libs.bundles.patched.build.tools.get().forEach { add("androidLintTool", "${it.module}:${it.version}") }
+    }
 }

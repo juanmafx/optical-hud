@@ -33,5 +33,7 @@ class AndroidTorchController(context: Context) : TorchController {
         }
     } catch (_: CameraAccessException) {
         null
+    } catch (_: IllegalArgumentException) {
+        null
     }
 }

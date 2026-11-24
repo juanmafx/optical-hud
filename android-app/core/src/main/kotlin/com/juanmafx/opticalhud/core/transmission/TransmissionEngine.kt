@@ -15,6 +15,8 @@ class TransmissionEngine(
     var isTransmitting: Boolean = false
         private set
 
+    private var activeRun = 0
+
     fun transmit(text: String): TransmissionResult {
         stop()
         if (text.length > MAX_INPUT_LENGTH) return TransmissionResult.MessageTooLong
@@ -25,29 +27,31 @@ class TransmissionEngine(
 
         val steps = planner.plan(message)
         isTransmitting = true
-        var delayMs = 0L
-        steps.forEachIndexed { index, step ->
-            val progressPercent = (index + 1) * PERCENT / steps.size
-            scheduler.schedule(delayMs) { execute(step, progressPercent) }
-            delayMs += step.durationMs
-        }
-        scheduler.schedule(delayMs, ::complete)
+        val run = ++activeRun
+        scheduler.schedule(0L) { execute(steps, 0, run) }
         return TransmissionResult.Started(message)
     }
 
     fun stop() {
         if (!isTransmitting) return
+        activeRun++
         scheduler.cancelAll()
         torch.setEnabled(false)
         isTransmitting = false
     }
 
-    private fun execute(step: FlashStep, progressPercent: Int) {
-        if (torch.setEnabled(step.enabled)) {
-            listener?.onStep(step, progressPercent)
-        } else {
+    private fun execute(steps: List<FlashStep>, index: Int, run: Int) {
+        val step = steps[index]
+        if (!torch.setEnabled(step.enabled)) {
             stop()
             listener?.onFailed()
+            return
+        }
+        listener?.onStep(step, (index + 1) * PERCENT / steps.size)
+        if (run != activeRun) return
+        val nextIndex = index + 1
+        scheduler.schedule(step.durationMs) {
+            if (nextIndex < steps.size) execute(steps, nextIndex, run) else complete()
         }
     }
 

@@ -19,6 +19,10 @@ data class ExperimentConfig(
 ) {
     init {
         require(trialsPerPoint > 0) { "trialsPerPoint must be positive" }
+        require(unitMs >= MorseTiming.MIN_UNIT_MS) { "unitMs must be at least ${MorseTiming.MIN_UNIT_MS}" }
+        require(frameIntervalMs.isFinite() && frameIntervalMs >= 0.0) {
+            "frameIntervalMs must be finite and non-negative"
+        }
         require(messageLength > 0) { "messageLength must be positive" }
         require(jitterFractions.isNotEmpty() && jitterFractions.all { it >= 0.0 }) {
             "jitterFractions must be non-empty and non-negative"

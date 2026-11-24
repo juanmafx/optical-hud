@@ -47,14 +47,14 @@ class MorseCodecTest {
     }
 
     @Test
-    fun `decoding inverts encoding for canonical text`() = runBlocking {
+    fun `decoding inverts encoding for canonical text`(): Unit = runBlocking {
         checkAll(propertyConfig(), canonicalText) { text ->
             assertEquals(text, decoder.decode(encoder.encode(text).morse))
         }
     }
 
     @Test
-    fun `encoding is idempotent over its normalized text`() = runBlocking {
+    fun `encoding is idempotent over its normalized text`(): Unit = runBlocking {
         checkAll(propertyConfig(), arbitraryText) { text ->
             val first = encoder.encode(text)
             assertEquals(first.morse, encoder.encode(first.text).morse)
@@ -62,7 +62,7 @@ class MorseCodecTest {
     }
 
     @Test
-    fun `morse output only contains the channel alphabet`() = runBlocking {
+    fun `morse output only contains the channel alphabet`(): Unit = runBlocking {
         checkAll(propertyConfig(), arbitraryText) { text ->
             assertTrue(encoder.encode(text).morse.all { it in ".-/ " })
         }

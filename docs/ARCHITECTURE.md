@@ -47,7 +47,7 @@ flowchart LR
 
 1. `MorseEncoder` normalizes text into words and counts skipped characters.
 2. `TransmissionPlanner` converts the message into alternating lit and dark `FlashStep` values, each mapped to its position in the rendered Morse string.
-3. `TransmissionEngine` schedules each step at a cumulative offset from one start time. Per-step scheduling error therefore does not accumulate into later offsets.
+3. `TransmissionEngine` schedules each step only after the previous step has run, delayed by that step's full duration. A stalled UI thread can stretch the timing but cannot release queued flashes in a burst. The trade-off is that scheduling latency accumulates into the total transmission time.
 4. A torch failure cancels pending steps, turns the torch off, and notifies the listener.
 
 ## Signal Model
@@ -64,7 +64,7 @@ One Morse unit `u` defines all ITU durations:
 
 Speed follows the PARIS convention: `WPM = 1200 / u`, with `u` in milliseconds. The default 200 ms unit is 6 WPM.
 
-**Flash safety.** Consecutive light onsets are at least `2u` apart. The 170 ms minimum gives a 340 ms spacing, which keeps any one-second window at or below three onsets. A property test checks this.
+**Flash safety.** Consecutive light onsets are at least `2u` apart. The 170 ms minimum gives a 340 ms spacing, which keeps any one-second window at or below three onsets. Property tests check this for the plan and for the engine under a simulated scheduler stall. The guarantee covers commanded onsets: torch hardware latency is not measured.
 
 ## Algorithms and Complexity
 
@@ -93,7 +93,7 @@ Classification boundaries are the midpoints between adjacent ideal durations: `2
 
 ## Reproducibility
 
-`SeededRandom` implements SplitMix64 and is checked against the published reference vector. Gaussian samples use the Box-Muller transform. Because neither depends on the JDK's random implementation, a seed defines the same stream on every JVM. Each experiment point receives its own stream derived from the root seed.
+`SeededRandom` implements SplitMix64 and is checked against a known output vector. Gaussian samples use the Box-Muller transform with `StrictMath`, whose results the Java specification defines exactly, so a seed defines the same stream on every conforming JVM. Each experiment point receives its own stream derived from the root seed.
 
 ## Statistical Method
 
@@ -110,3 +110,12 @@ The channel applies independent Gaussian jitter and frame quantization. It does 
 2. Validate the channel model against recorded torch captures.
 3. Add framing with a preamble and checksum before moving to a binary protocol.
 4. Add authenticated encryption before any sensitive use.
+
+## References
+
+- G. L. Steele, D. Lea, and C. H. Flood. "Fast Splittable Pseudorandom Number Generators." OOPSLA, 2014.
+- G. E. P. Box and M. E. Muller. "A Note on the Generation of Random Normal Deviates." Annals of Mathematical Statistics, 1958.
+- E. B. Wilson. "Probable Inference, the Law of Succession, and Statistical Inference." JASA, 1927.
+- V. I. Levenshtein. "Binary Codes Capable of Correcting Deletions, Insertions, and Reversals." Soviet Physics Doklady, 1966.
+- ITU-R Recommendation M.1677-1, International Morse Code.
+- W3C WCAG 2.2, Success Criterion 2.3.1, Three Flashes or Below Threshold.

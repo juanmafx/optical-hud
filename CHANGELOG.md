@@ -25,6 +25,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Torch errors were silently ignored and now stop the transmission with a visible error.
 - A camera access failure during startup could crash the app.
 - Pausing the app while idle could turn off a torch that another app had enabled.
+- A stalled UI thread could release queued flashes in a burst above the three-per-second limit. Steps are now chained.
+- Twelve property tests were silently skipped by JUnit because they returned a value. They now run, and the report generator fails if a declared test does not execute.
+- Experiment options that the simulation cannot run now exit with a usage error instead of a stack trace.
+- Gaussian sampling uses `StrictMath` so results do not depend on JVM math intrinsics.
 
 ### Security
 
@@ -35,7 +39,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Upgraded Gradle to 9.9.2 with distribution checksum verification, replacing a wrapper JAR from the 6.6 to 7.0 era.
 - Upgraded AGP, Kotlin, and AndroidX dependencies.
 - Stopped tracking IDE configuration.
+- Constrained vulnerable transitive build-tool dependencies (Bouncy Castle, Guava, Commons Lang, HttpClient, JDOM, jose4j) to patched versions.
+- Asked keyboards not to learn from message input.
 
 ## [1.0] - 2026-03-17
 
-- Initial prototype: Android torch control and Morse transmission.
+- Initial prototype: Android torch control and Morse transmission. The app's version name was 1.0, and this state carries the Git tag `v0.1.0`.
